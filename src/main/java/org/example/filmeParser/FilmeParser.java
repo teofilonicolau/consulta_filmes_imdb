@@ -4,11 +4,11 @@ import org.example.ator.Ator;
 import org.example.diretor.Diretor;
 import org.example.filme.Filme;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FilmeParser {
 
@@ -16,38 +16,30 @@ public class FilmeParser {
         try {
             JSONObject jsonObject = new JSONObject(json);
 
-            // Adicionando diretor
-            Diretor diretor = null;
-            JSONObject directorObject = jsonObject.optJSONObject("director");
-            if (directorObject != null) {
-                diretor = new Diretor(directorObject.optString("name", ""));
+            // Corrigir chamada do construtor de Filme
+            String title = jsonObject.getString("title");
+            String releaseDate = jsonObject.getString("release_date");
+            String overview = jsonObject.getString("overview");
+
+            // Ajustar chamada do construtor para incluir o diretor
+            String nomeDiretor = jsonObject.getString("director");
+            Diretor diretor = new Diretor(nomeDiretor);
+
+            // Ajustar chamada do construtor para incluir os atores
+            List<String> nomesAtores = new ArrayList<>();
+            JSONArray castArray = jsonObject.getJSONArray("cast");
+            for (int i = 0; i < castArray.length(); i++) {
+                String nomeAtor = castArray.getString(i);
+                nomesAtores.add(nomeAtor);
             }
 
-            // Extraindo outras informações do filme
-            String titulo = jsonObject.optString("title", "");
-            int ano = jsonObject.optInt("year", 0);
-            double orcamento = jsonObject.optDouble("budget", 0.0);
-            String descricao = jsonObject.optString("description", "");
+            // Criar a lista de objetos Ator
+            List<Ator> atores = nomesAtores.stream().map(Ator::new).collect(Collectors.toList());
 
-            // Extraindo a lista de atores
-            List<Ator> atores = new ArrayList<>();
-            JSONArray castArray = jsonObject.optJSONArray("cast");
-            if (castArray != null) {
-                for (int i = 0; i < castArray.length(); i++) {
-                    JSONObject actorObject = castArray.optJSONObject(i);
-                    if (actorObject != null) {
-                        String nomeAtor = actorObject.optString("name", "");
-                        Ator ator = new Ator(nomeAtor);
-                        atores.add(ator);
-                    }
-                }
-            }
-
-            // Criando e retornando um objeto Filme
-            return new Filme(titulo, ano, orcamento, descricao, diretor, atores);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null; // Trate o erro conforme necessário
+            return new Filme(title, diretor, atores);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao fazer o parsing do JSON para Filme", e);
         }
     }
+
 }

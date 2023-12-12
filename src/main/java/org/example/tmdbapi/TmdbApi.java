@@ -1,38 +1,35 @@
 package org.example.tmdbapi;
 
-import java.io.BufferedReader;
+import reactor.core.publisher.Mono;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 public class TmdbApi {
 
-    private static final String API_KEY = "812a3694d28cb7e9840d5842e9126a23";
-    private static final String BASE_URL = "https://api.themoviedb.org/3/search/movie";
-
-    // Altere a assinatura do método obterDadosFilmePeloNome em TmdbApi
-    public static String obterDadosFilmePeloNome(String nomeFilme) throws IOException {
-        try {
-            String nomeEncoded = URLEncoder.encode(nomeFilme, StandardCharsets.UTF_8);
-            String url = BASE_URL + "?api_key=" + API_KEY + "&query=" + nomeEncoded;
-
-            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.setRequestMethod("GET");
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
-                return response.toString();
+    public static Mono<String> obterDadosFilmePeloNome(String nomeFilme) {
+        return Mono.defer(() -> {
+            try {
+                // Substitua este trecho pela lógica real de chamada à API TMDb
+                String resultadoDaChamadaApi = chamarApiTmdb(nomeFilme);
+                return Mono.just(resultadoDaChamadaApi);
+            } catch (IOException | InterruptedException e) {
+                return Mono.error(e);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw e; // ou lançar uma exceção personalizada, dependendo do contexto
-        }
+        });
+    }
+
+    // Método para chamar a API TMDb (substitua pela lógica real)
+    private static String chamarApiTmdb(String nomeFilme) throws IOException, InterruptedException {
+        // Substitua este trecho pela lógica real de chamada à API TMDb
+        String apiUrl = "https://api.themoviedb.org/3/search/movie?query=" + nomeFilme + "&api_key=SUA_API_KEY";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiUrl))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
     }
 }
